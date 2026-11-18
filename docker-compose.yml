@@ -1,0 +1,48 @@
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: bairroemdia-postgres
+    environment:
+      POSTGRES_DB: bairroemdia
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bairroemdia"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  soa:
+    build:
+      context: ./soa
+    container_name: bairroemdia-soa
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/bairroemdia
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+bairro-em-dia-soa/
+├── soa/
+│   ├── src/
+│   ├── Dockerfile
+│   └── pom.xml
+├── scripts/
+├── docker-compose.yml
+├── .gitignore
+├── INTEGRACAO_GRUPO.md
+└── README.md

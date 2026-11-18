@@ -1,0 +1,14 @@
+package br.com.bairroemdia.exception;
+import org.springframework.http.*; import org.springframework.web.bind.MethodArgumentNotValidException; import org.springframework.web.bind.annotation.*;
+import java.time.Instant; import java.util.*;
+@RestControllerAdvice
+public class ApiExceptionHandler {
+ @ExceptionHandler(NotFoundException.class) ResponseEntity<?> notFound(NotFoundException e){return response(HttpStatus.NOT_FOUND,e.getMessage());}
+ @ExceptionHandler(ConflictException.class) ResponseEntity<?> conflict(ConflictException e){return response(HttpStatus.CONFLICT,e.getMessage());}
+ @ExceptionHandler(MethodArgumentNotValidException.class) ResponseEntity<?> invalid(MethodArgumentNotValidException e){
+  Map<String,String> errors=new LinkedHashMap<>();e.getBindingResult().getFieldErrors().forEach(x->errors.put(x.getField(),x.getDefaultMessage()));
+  return ResponseEntity.badRequest().body(Map.of("timestamp",Instant.now(),"status",400,"error","Validation failed","fields",errors));
+ }
+ @ExceptionHandler(IllegalArgumentException.class) ResponseEntity<?> bad(IllegalArgumentException e){return response(HttpStatus.BAD_REQUEST,e.getMessage());}
+ private ResponseEntity<?> response(HttpStatus s,String m){return ResponseEntity.status(s).body(Map.of("timestamp",Instant.now(),"status",s.value(),"error",s.getReasonPhrase(),"message",m));}
+}
